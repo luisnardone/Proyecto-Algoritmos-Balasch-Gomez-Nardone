@@ -13,10 +13,24 @@ class Museo():
         self.obras = []
 
     def obtener_departamentos(self):
-        pass
+        api = 'https://collectionapi.metmuseum.org/public/collection/v1/departments'
+        try:
+            departamentos = requests.get(api).json()['departments']
+        except:
+            print('No se ha podido cargar los departamentos correctamente... Intente mas tarde\n')
+            return None
+        return departamentos
 
     def cargar_departamentos(self):
-        pass
+        departamentos = self.obtener_departamentos()
+        if not departamentos:
+            return
+        for departamento in departamentos:
+            idx = departamento['departmentId']
+            display_name = departamento['displayName']
+            nuevo_departamento = Departamento(idx,display_name)
+            self.departamentos.append(nuevo_departamento)
+        print('Datos Cargados Exitosamente')
 
     def obtener_obras_por_departamentos(self):
         pass
@@ -51,4 +65,31 @@ class Museo():
 
 
     def menu(self):
-        pass
+        self.cargar_departamentos()
+        if len(self.cargar_departamentos) == 0:
+            print('No se han logrado cargar los datos necesarios...')
+            return
+        
+        print('\nBIENVENIDO/A AL MUSEO METROPOLITANO')
+        print('''Integrantes:
+1. Luis Nardone
+2. Erick Balasch
+3. Isabel Gomez
+''')
+        while True:
+            print('''
+MENÚ PRINCIPAL
+1. Búsqueda de Obras
+2. Salir''')
+                
+            ans = input('Ingrese el número de la opción deseada: ')
+
+            while not ans.isnumeric() or int(ans) not in range(1,4):
+                print('Debe ingresar una opción válida')
+                ans = input('Ingrese el número de la opción deseada: ')
+
+            if ans == '1':
+                self.buscar_obras()
+            else:
+                print('HASTA LUEGO')
+                break
