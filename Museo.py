@@ -87,7 +87,7 @@ class Museo():
 
     def menu(self):
         self.cargar_departamentos()
-        if len(self.cargar_departamentos) == 0:
+        if len(self.departamentos) == 0:
             print('No se han logrado cargar los datos necesarios...')
             return
         
