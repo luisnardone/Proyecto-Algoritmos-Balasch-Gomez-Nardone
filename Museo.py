@@ -142,7 +142,37 @@ class Museo():
 
 
     def obtener_obras_por_nacionalidad(self):
-        pass
+        print('\nBÚSQUEDA POR NACIONALIDAD DEL ARTISTA')
+
+        nacionalidades = []
+        with open('Nacionalidades.csv', encoding='utf-8') as f:
+            lector = csv.DictReader(f)
+            for fila in lector:
+                nacionalidades.append(fila['Nationality'])
+        
+        num = 1
+        for nacionalidad in nacionalidades:
+            print(f'{num}) {nacionalidad.capitalize()}')
+            num+=1
+            if num%100 == 0:
+                input('ENTER para ver más...')
+
+        ans = input('Ingrese el número deseado: ')
+        while not ans.isnumeric() or int(ans) not in range(1,num):
+            print('Ingrese una opción válida...')
+            ans = input('Ingrese el número deseado: ')
+        
+        nacionalidad_seleccionado = nacionalidades[int(ans)-1]
+
+        print(f'NACIONALIDAD SELECCIONADA: {nacionalidad_seleccionado}')
+
+        obras_seleccionadas = self.obtener_obras_por_nacionalidad(nacionalidad_seleccionado)
+        print(f'\nOBRAS POR NACIONALIDAD DEL ARTISTA: {nacionalidad_seleccionado.upper()}')
+        if len(obras_seleccionadas) == 0:
+            print('No se han encontrado obras con la nacionalidad seleccionada...')
+        else:
+            for obra in obras_seleccionadas:
+                print(obra.mostrar_general())
 
     def buscar_por_nacionalidad(self):
         pass
