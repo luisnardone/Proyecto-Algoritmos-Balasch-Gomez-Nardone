@@ -32,6 +32,58 @@ class Museo():
             self.departamentos.append(nuevo_departamento)
         print('Datos Cargados Exitosamente')
 
+    def obra_a_objeto(self, obra):
+        idx = obra['objectID']
+        title = obra['title']
+        date = obra['objectDate']
+        classification = obra['classification']
+        department = obra['department']
+        primary_image = obra['primaryImage']
+
+        if obra['artistDisplayName'] == "":
+            artistDisplayName = "Desconocido"
+        else:
+            artistDisplayName = obra['artistDisplayName']
+
+        if obra['artistNationality'] == "":
+            artistNationality = "Desconocido"
+        else:
+            artistNationality = obra['artistNationality']
+
+        if obra['artistBeginDate'] == "":
+            artistBeginDate = "Desconocido"
+        else:
+            artistBeginDate = obra['artistBeginDate']
+
+        if obra['artistEndDate'] == "":
+            artistEndDate = "Desconocido"
+        else:
+            artistEndDate = obra['artistEndDate']
+
+        artist = Artista(artistDisplayName,artistNationality,artistBeginDate,artistEndDate)
+
+        return Obra(idx, title, artist, date, classification, department, primary_image)
+    
+    def buscar_obra_por_idx(self,idx):
+        print('Buscando LOCAL...')
+        for obra in self.obras:
+            if obra.idx == idx:
+                return obra
+        return None
+    
+    def obtener_obra(self, idx):
+        print('Buscando en API...')
+        api = f'https://collectionapi.metmuseum.org/public/collection/v1/objects/{idx}'
+        try:
+            obra_dict = requests.get(api).json()
+        except Exception as e:
+            print(f'Error al obtener la obra de ID {idx}.\nError: {e}')
+            return None
+        obra = self.obra_a_objeto(obra_dict)
+        self.obras.append(obra)
+
+        return obra
+
     def obtener_obras_por_departamentos(self):
         pass
 
