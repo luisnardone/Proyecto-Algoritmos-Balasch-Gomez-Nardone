@@ -12,6 +12,9 @@ class Museo():
         self.departamentos = []
         self.obras = []
 
+
+    # CARGA DE DATOS DE DEPARTAMENTOS ##
+
     def obtener_departamentos(self):
         api = 'https://collectionapi.metmuseum.org/public/collection/v1/departments'
         try:
@@ -31,6 +34,12 @@ class Museo():
             nuevo_departamento = Departamento(idx,display_name)
             self.departamentos.append(nuevo_departamento)
         print('Datos Cargados Exitosamente')
+
+    # CARGA DE DATOS DE DEPARTAMENTOS ##
+
+
+
+    # MANEJO DE OBJETOS ##
 
     def obra_a_objeto(self, obra):
         idx = obra['objectID']
@@ -65,14 +74,14 @@ class Museo():
         return Obra(idx, title, artist, date, classification, department, primary_image)
     
     def buscar_obra_por_idx(self,idx):
-        print('Buscando LOCAL...')
         for obra in self.obras:
             if obra.idx == idx:
+                print(f'\nObra {idx} encontrada. Fue previamente almacenada...')
                 return obra
+        
         return None
     
     def obtener_obra(self, idx):
-        print('Buscando en API...')
         api = f'https://collectionapi.metmuseum.org/public/collection/v1/objects/{idx}'
         try:
             obra_dict = requests.get(api).json()
@@ -82,7 +91,12 @@ class Museo():
         obra = self.obra_a_objeto(obra_dict)
         self.obras.append(obra)
 
+        print(f'\nObra {idx} encontrada. Obtenida de la API...')
         return obra
+
+    # MANEJO DE OBJETOS ##
+
+
 
     def obtener_obras_por_departamentos(self, dpto):
         api_url = f'https://collectionapi.metmuseum.org/public/collection/v1/objects?departmentIds={dpto.idx}'
@@ -118,7 +132,6 @@ class Museo():
 
         return obras_seleccionadas
     
-
     def buscar_por_departamento(self):
         print('\nBÚSQUEDA POR DEPARTAMENTO ')
 
@@ -139,6 +152,8 @@ class Museo():
         else:
             for obra in obras_seleccionadas:
                 print(obra.mostrar_general())
+
+            self.mostrar_detalles(obras_seleccionadas)
 
 
     def buscar_por_nacionalidad(self):
@@ -173,6 +188,8 @@ class Museo():
         else:
             for obra in obras_seleccionadas:
                 print(obra.mostrar_general())
+            
+            self.mostrar_detalles(obras_seleccionadas)
 
     def obtener_obras_por_nacionalidad(self, nacionalidad):
         api_url = f'https://collectionapi.metmuseum.org/public/collection/v1/search?artistOrCulture=true&q={nacionalidad}'
@@ -206,7 +223,7 @@ class Museo():
         return obras_seleccionadas
 
 
-    def obtener_obras_por_nombre_autor(self):
+    def obtener_obras_por_nombre_autor(self,nombre):
         api_url = f'https://collectionapi.metmuseum.org/public/collection/v1/search?artistOrCulture=true&q={nombre}'
         respuesta = requests.get(api_url).json()
         print(f"Se han obtenido {respuesta['total']} obras")
@@ -241,7 +258,7 @@ class Museo():
 
         artista_seleccionado = input('Ingrese el nombre del artista (minimo 3 caracteres): ').capitalize()
 
-        if len(artista_seleccionado) < 3 or artista_seleccionado.strip() == "":
+        if len(artista_seleccionado.strip()) < 3 or artista_seleccionado.strip() == "":
             print('Debe ingresar al menos 3 caracteres para el nombre del artista.')
             artista_seleccionado = input('Ingrese el nombre del artista (minimo 3 caracteres): ').capitalize()
 
@@ -254,22 +271,63 @@ class Museo():
         else:
             for obra in obras_seleccionadas:
                 print(obra.mostrar_general())
+            
+            self.mostrar_detalles(obras_seleccionadas)
 
 
-    def mostrar_detalles(self):
-        pass
 
-    def mostrar_imagen(self):
+    def mostrar_detalles(self, lista_obras):
+        print('\n¿Desea ver los detalles de alguna de las obras?')
+        ans = input('Si (s)/No (n): ').lower()
+
+        while ans not in ['s','n']:
+            print('Debe ingresar una opción válida: ')
+            ans = input('Si (s)/No (n): ').lower()
+
+        if ans == 'n':
+            return
+
+        print('\nVER DETALLES DE LAS OBRAS')
+        for i,obra in enumerate(lista_obras):
+            print(f'{i+1}. {obra.mostrar_general()}')
+
+        ans = input('\nIngrese el número de la opción deseada: ')
+        while not ans.isnumeric() or int(ans) not in range(1,len(lista_obras)+1):
+            print('\nDebe ingresar una opción válida')
+            ans = input('Ingrese el número de la opción deseada: ')
+        
+
+        obra_seleccionada = lista_obras[int(ans)-1]
+        print(obra_seleccionada.mostrar_detalles())
+        
+        if obra_seleccionada.primary_image == "":
+            print('No se ha podido encontrar una imagen de la obra...')
+        else:
+            print('¿Desea ver una imagen de la obra?')
+            ans = input('Si (s)/No (n): ').lower()
+            while ans not in ['s','n']:
+                print('Debe ingresar una opción válida: ')
+                ans = input('Si (s)/No (n): ').lower()
+            if ans == 's':
+                self.mostrar_imagen(obra_seleccionada.primary_image, obra_seleccionada.title)
+
+
+    def mostrar_imagen(self, url, nombre_base):
         pass
 
     def buscar_obras(self):
         while True:
             print('\nBÚSQUEDA DE OBRAS ')
+            print('''
+Seleccione el criterio de búsqueda que prefiera
+Obtenga la cantidad de obras deseadas y revise sus detalles.
+Si la obra cuenta con imagen disponible, también podrá visualizarla.
+''')
             print('''MENÚ
-    1. Buscar por Departamento
-    2. Buscar por Nacionalidad del Autor
-    3. Buscar por Nombre del Autor
-    4. Volver''')
+1. Buscar por Departamento
+2. Buscar por Nacionalidad del Autor
+3. Buscar por Nombre del Autor
+4. Volver''')
 
             ans = input('Ingrese el número de la opción deseada:  ')
 
@@ -295,16 +353,14 @@ class Museo():
             return
         
         print('\nBIENVENIDO/A AL MUSEO METROPOLITANO')
-        print('''Integrantes:
-1. Luis Nardone
-2. Erick Balasch
-3. Isabel Gomez
-''')
+        print('\nIntegrantes: Erick Balasch - Isabel Gomez - Luis Nardone\n')
         while True:
             print('''
 MENÚ PRINCIPAL
+------------------------
 1. Búsqueda de Obras
-2. Salir''')
+2. Salir
+------------------------''')
                 
             ans = input('Ingrese el número de la opción deseada: ')
 
