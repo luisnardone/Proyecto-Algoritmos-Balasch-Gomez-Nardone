@@ -53,15 +53,36 @@ class Museo():
         pass
 
 
-    def buscar_obras(self):
-        pass
-
-
     def mostrar_detalles(self):
         pass
 
     def mostrar_imagen(self):
         pass
+
+    def buscar_obras(self):
+        while True:
+            print('\nBÚSQUEDA DE OBRAS ')
+            print('''MENÚ
+    1. Buscar por Departamento
+    2. Buscar por Nacionalidad del Autor
+    3. Buscar por Nombre del Autor
+    4. Volver''')
+
+            ans = input('Ingrese el número de la opción deseada:  ')
+
+            while not ans.isnumeric() or int(ans) not in range(1,5):
+                print('Debe ingresar una opción válida')
+                ans = input('Ingrese el número de la opción deseada: ')
+
+            if ans == '4':
+                print('Saliendo del menú de búsqueda...\n')
+                break
+            elif ans == '1':
+                self.buscar_por_departamento()
+            elif ans == '2':
+                self.buscar_por_nacionalidad()
+            elif ans == '3':
+                self.buscar_por_autor()
 
 
     def menu(self):
