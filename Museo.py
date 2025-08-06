@@ -141,7 +141,7 @@ class Museo():
                 print(obra.mostrar_general())
 
 
-    def obtener_obras_por_nacionalidad(self):
+    def buscar_por_nacionalidad(self):
         print('\nBÚSQUEDA POR NACIONALIDAD DEL ARTISTA')
 
         nacionalidades = []
@@ -174,8 +174,36 @@ class Museo():
             for obra in obras_seleccionadas:
                 print(obra.mostrar_general())
 
-    def buscar_por_nacionalidad(self):
-        pass
+    def obtener_obras_por_nacionalidad(self, nacionalidad):
+        api_url = f'https://collectionapi.metmuseum.org/public/collection/v1/search?artistOrCulture=true&q={nacionalidad}'
+
+        respuesta = requests.get(api_url).json()
+        print(f"Se han obtenido {respuesta['total']} obras")
+        print('\nObteniendo las primeras 10...')
+
+        obras_seleccionadas = []
+        contador = 0
+
+        for idx in respuesta['objectIDs']:
+            obra = self.buscar_obra_por_idx(idx)
+            if obra == None:
+                obra = self.obtener_obra(idx)
+                if obra == None:
+                    continue
+
+            if nacionalidad.lower() in obra.artist.nationality.lower():
+                obras_seleccionadas.append(obra)
+                print(f'Obra {idx} obtenida...')
+            contador += 1
+
+            if contador % 10 == 0:
+                ans = input('¿Desea obtener otras 10 obras? Si (s)/No (n): ').lower()
+                while ans not in ['s', 'n']:
+                    ans = input('Debe ingresar s o n: ')
+                if ans == 'n':
+                    return obras_seleccionadas
+
+        return obras_seleccionadas
 
 
     def obtener_obras_por_nombre_autor(self):
