@@ -207,10 +207,53 @@ class Museo():
 
 
     def obtener_obras_por_nombre_autor(self):
-        pass
+        api_url = f'https://collectionapi.metmuseum.org/public/collection/v1/search?artistOrCulture=true&q={nombre}'
+        respuesta = requests.get(api_url).json()
+        print(f"Se han obtenido {respuesta['total']} obras")
+        print('\nObteniendo las primeras 10...')
+
+        obras_seleccionadas = []
+        contador = 0
+
+        for idx in respuesta['objectIDs']:
+            obra = self.buscar_obra_por_idx(idx)
+            if obra == None:
+                obra = self.obtener_obra(idx)
+                if obra == None:
+                    continue
+
+            if nombre.lower() in obra.artist.display_name.lower():
+                obras_seleccionadas.append(obra)
+                print(f'Obra {idx} obtenida...')
+            contador += 1
+
+            if contador % 10 == 0:
+                ans = input('¿Desea obtener otras 10 obras? Si (s)/No (n): ').lower()
+                while ans not in ['s', 'n']:
+                    ans = input('Debe ingresar s o n: ')
+                if ans == 'n':
+                    return obras_seleccionadas
+
+        return obras_seleccionadas
 
     def buscar_por_autor(self):
-        pass
+        print('\nBÚSQUEDA POR NOMBRE DEL ARTISTA')
+
+        artista_seleccionado = input('Ingrese el nombre del artista (minimo 3 caracteres): ').capitalize()
+
+        if len(artista_seleccionado) < 3 or artista_seleccionado.strip() == "":
+            print('Debe ingresar al menos 3 caracteres para el nombre del artista.')
+            artista_seleccionado = input('Ingrese el nombre del artista (minimo 3 caracteres): ').capitalize()
+
+        print(f'ARTISTA SELECCIONADO: {artista_seleccionado.upper()}')
+        obras_seleccionadas = self.obtener_obras_por_nombre_autor(artista_seleccionado)
+        print(f'\nOBRAS POR ARTISTA: {artista_seleccionado.upper()}')
+
+        if len(obras_seleccionadas) == 0:
+            print('No se han encontrado obras con el artista seleccionado...')
+        else:
+            for obra in obras_seleccionadas:
+                print(obra.mostrar_general())
 
 
     def mostrar_detalles(self):
