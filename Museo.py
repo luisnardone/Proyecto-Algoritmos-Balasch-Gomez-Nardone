@@ -84,11 +84,61 @@ class Museo():
 
         return obra
 
-    def obtener_obras_por_departamentos(self):
-        pass
+    def obtener_obras_por_departamentos(self, dpto):
+        api_url = f'https://collectionapi.metmuseum.org/public/collection/v1/objects?departmentIds={dpto.idx}'
+
+        respuesta = requests.get(api_url).json()
+        print(f"Se han obtenido {respuesta['total']} obras")
+        print('\nObteniendo las primeras 10...')
+
+        obras_seleccionadas = []
+        contador = 0
+
+        for idx in respuesta['objectIDs']:
+            obra = self.buscar_obra_por_idx(idx)
+            if obra is None:
+                obra = self.obtener_obra(idx)
+                if obra is None:
+                    continue
+
+            if obra not in self.obras:
+                self.obras.append(obra)
+
+            obras_seleccionadas.append(obra)
+            print(f'Obra {idx} obtenida...')
+            contador += 1
+
+            if contador % 10 == 0:
+                print(f'Se han logrado guardar {len(obras_seleccionadas)} obras')
+                ans = input('¿Desea obtener otras 10 obras? Si (s)/No (n): ').lower()
+                while ans not in ['s', 'n']:
+                    ans = input('Debe ingresar s o n: ')
+                if ans == 'n':
+                    return obras_seleccionadas
+
+        return obras_seleccionadas
+    
 
     def buscar_por_departamento(self):
-        pass
+        print('\nBÚSQUEDA POR DEPARTAMENTO ')
+
+        for i, departamento in enumerate(self.departamentos):
+            print(f'{i+1}) {departamento.mostrar()}')
+
+        ans = input('Ingrese el número (no ID) deseado: ')
+        while not ans.isnumeric() or int(ans) not in range(1, len(self.departamentos) + 1):
+            print('Ingrese una opción válida...')
+            ans = input('Ingrese el número deseado: ')
+
+        dpto = self.departamentos[int(ans) - 1]
+        print(f'DEPARTAMENTO SELECCIONADO: {dpto.display_name}')
+        obras_seleccionadas = self.obtener_obras_por_departamentos(dpto)
+
+        if len(obras_seleccionadas) == 0:
+            print('No se han encontrado obras en el departamento seleccionado...')
+        else:
+            for obra in obras_seleccionadas:
+                print(obra.mostrar_general())
 
 
     def obtener_obras_por_nacionalidad(self):
