@@ -9,6 +9,9 @@ from Departamento import Departamento
 
 class Museo():
     def __init__(self):
+        """
+        Inicializa una instancia de la clase Museo
+        """
         self.departamentos = []
         self.obras = []
 
@@ -16,6 +19,13 @@ class Museo():
     # CARGA DE DATOS DE DEPARTAMENTOS ##
 
     def obtener_departamentos(self):
+        """
+        Obtiene la lista de departamentos del museo desde la API del MET.
+
+        Returns:
+            list: Lista de diccionarios con los departamentos si la solicitud es exitosa, None si falla.
+        """
+
         api = 'https://collectionapi.metmuseum.org/public/collection/v1/departments'
         try:
             departamentos = requests.get(api).json()['departments']
@@ -25,6 +35,9 @@ class Museo():
         return departamentos
 
     def cargar_departamentos(self):
+        """
+        Carga los departamentos obtenidos desde la API en la lista interna `self.departamentos`.
+        """
         departamentos = self.obtener_departamentos()
         if not departamentos:
             return
@@ -42,6 +55,15 @@ class Museo():
     # MANEJO DE OBJETOS ##
 
     def obra_a_objeto(self, obra):
+        """
+        Convierte un diccionario obtenido desde la API del MET en una instancia de la clase `Obra`.
+
+        Args:
+            obra (dict): Diccionario con los datos de una obra.
+
+        Returns:
+            Obra: Objeto de tipo `Obra` con los atributos cargados.
+        """
         idx = obra['objectID']
         title = obra['title']
         date = obra['objectDate']
@@ -74,6 +96,15 @@ class Museo():
         return Obra(idx, title, artist, date, classification, department, primary_image)
     
     def buscar_obra_por_idx(self,idx):
+        """
+        Busca una obra previamente almacenada por su ID.
+
+        Args:
+            idx (int): ID de la obra.
+
+        Returns:
+            Obra or None: La obra si está almacenada, None si no se encuentra.
+        """
         for obra in self.obras:
             if obra.idx == idx:
                 print(f'\nObra {idx} encontrada. Fue previamente almacenada...')
@@ -82,6 +113,15 @@ class Museo():
         return None
     
     def obtener_obra(self, idx):
+        """
+        Obtiene una obra desde la API del MET por su ID, la convierte en objeto y la almacena.
+
+        Args:
+            idx (int): ID de la obra.
+
+        Returns:
+            Obra or None: La obra obtenida si existe, None si hay error en la solicitud.
+        """
         api = f'https://collectionapi.metmuseum.org/public/collection/v1/objects/{idx}'
         try:
             obra_dict = requests.get(api).json()
@@ -101,6 +141,15 @@ class Museo():
     # BUSQUEDA POR DEPARTAMENTO ##
 
     def obtener_obras_por_departamentos(self, dpto):
+        """
+        Obtiene y selecciona obras pertenecientes a un departamento específico.
+        Obtiene la información de 10 en 10, de acuerdo a la solicitud del usuario
+        Args:
+            dpto (Departamento): Instancia del departamento del cual obtener obras.
+
+        Returns:
+            list: Lista de objetos `Obra` obtenidas desde la API.
+        """
         api_url = f'https://collectionapi.metmuseum.org/public/collection/v1/objects?departmentIds={dpto.idx}'
 
         respuesta = requests.get(api_url).json()
@@ -138,6 +187,9 @@ class Museo():
         return obras_seleccionadas
     
     def buscar_por_departamento(self):
+        """
+        Interfaz interactiva para seleccionar un departamento y visualizar obras correspondientes.
+        """
         print('\nBÚSQUEDA POR DEPARTAMENTO ')
 
         for i, departamento in enumerate(self.departamentos):
@@ -166,6 +218,9 @@ class Museo():
     # BUSQUEDA POR NACIONALIDAD ##
 
     def buscar_por_nacionalidad(self):
+        """
+        Interfaz interactiva para buscar obras según la nacionalidad del artista.
+        """
         print('\nBÚSQUEDA POR NACIONALIDAD DEL ARTISTA')
 
         nacionalidades = []
@@ -201,6 +256,15 @@ class Museo():
             self.mostrar_detalles(obras_seleccionadas)
 
     def obtener_obras_por_nacionalidad(self, nacionalidad):
+        """
+        Busca obras según la nacionalidad del artista usando la API.
+
+        Args:
+            nacionalidad (str): Nacionalidad a buscar.
+
+        Returns:
+            list: Lista de obras que coinciden con la nacionalidad del artista.
+        """
         api_url = f'https://collectionapi.metmuseum.org/public/collection/v1/search?artistOrCulture=true&q={nacionalidad}'
 
         respuesta = requests.get(api_url).json()
@@ -220,6 +284,8 @@ class Museo():
             if nacionalidad.lower() in obra.artist.nationality.lower():
                 obras_seleccionadas.append(obra)
                 print(f'Obra {idx} obtenida...')
+            else:
+                print(f'Obra {idx} no fue almacenada porque no coincide con el criterio de búsqueda.')
             contador += 1
 
             if contador % 10 == 0:
@@ -231,6 +297,7 @@ class Museo():
                     ans = input('Debe ingresar s o n: ')
                 if ans == 'n':
                     return obras_seleccionadas
+                
 
         return obras_seleccionadas
 
@@ -240,6 +307,15 @@ class Museo():
     # BUSQUEDA POR NOMBRE DE AUTOR ##
 
     def obtener_obras_por_nombre_autor(self,nombre):
+        """
+        Obtiene obras según el nombre del artista desde la API del MET.
+
+        Args:
+            nombre (str): Nombre del artista.
+
+        Returns:
+            list: Lista de obras que coinciden con el nombre del artista.
+        """
         api_url = f'https://collectionapi.metmuseum.org/public/collection/v1/search?artistOrCulture=true&q={nombre}'
         respuesta = requests.get(api_url).json()
         print(f"Se han obtenido {respuesta['total']} obras")
@@ -258,6 +334,8 @@ class Museo():
             if nombre.lower() in obra.artist.display_name.lower():
                 obras_seleccionadas.append(obra)
                 print(f'Obra {idx} obtenida...')
+            else:
+                print(f'Obra {idx} no fue almacenada porque no coincide con el criterio de búsqueda.')
             contador += 1
 
             if contador % 10 == 0:
@@ -273,6 +351,9 @@ class Museo():
         return obras_seleccionadas
 
     def buscar_por_autor(self):
+        """
+        Interfaz interactiva para buscar obras por nombre de autor.
+        """
         print('\nBÚSQUEDA POR NOMBRE DEL ARTISTA')
 
         artista_seleccionado = input('Ingrese el nombre del artista (minimo 3 caracteres): ').capitalize()
@@ -300,6 +381,12 @@ class Museo():
     # ADICIONALES ##
 
     def mostrar_detalles(self, lista_obras):
+        """
+        Muestra los detalles de una obra seleccionada de una lista y permite visualizar su imagen si está disponible.
+
+        Args:
+            lista_obras (list): Lista de obras de las cuales seleccionar para ver detalles.
+        """
         print('\n¿Desea ver los detalles de alguna de las obras?')
         ans = input('Si (s)/No (n): ').lower()
 
@@ -341,7 +428,11 @@ class Museo():
 
     def mostrar_imagen(self, url, nombre_base):
         """
-        Descarga una imagen desde una URL y la guarda en un archivo.
+        Descarga y muestra la imagen de una obra desde la URL proporcionada.
+
+        Args:
+            url (str): URL de la imagen.
+            nombre_base (str): Nombre base para guardar el archivo.
         """
         try:
             response = requests.get(url, stream=True)
@@ -357,7 +448,7 @@ class Museo():
                 elif 'image/svg+xml' in content_type:
                     extension = '.svg'
 
-            nombre_archivo_final = f"images/{nombre_base}{extension}"
+            nombre_archivo_final = f"{nombre_base}{extension}"
 
             with open(nombre_archivo_final, 'wb') as file:
                 for chunk in response.iter_content(chunk_size=8192):
@@ -378,6 +469,9 @@ class Museo():
 
     # MENU ##
     def buscar_obras(self):
+        """
+        Muestra un menú interactivo para elegir entre las diferentes formas de buscar obras.
+        """
         while True:
             print('\nBÚSQUEDA DE OBRAS ')
             print('''
@@ -408,6 +502,9 @@ Si la obra cuenta con imagen disponible, también podrá visualizarla.
                 self.buscar_por_autor()
 
     def menu(self):
+        """
+        Menú principal del programa que permite iniciar la búsqueda o salir.
+        """
         self.cargar_departamentos()
         if len(self.departamentos) == 0:
             print('No se han logrado cargar los datos necesarios...')
