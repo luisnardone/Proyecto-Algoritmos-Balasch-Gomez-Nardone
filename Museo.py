@@ -98,6 +98,8 @@ class Museo():
 
 
 
+    # BUSQUEDA POR DEPARTAMENTO ##
+
     def obtener_obras_por_departamentos(self, dpto):
         api_url = f'https://collectionapi.metmuseum.org/public/collection/v1/objects?departmentIds={dpto.idx}'
 
@@ -123,6 +125,9 @@ class Museo():
             contador += 1
 
             if contador % 10 == 0:
+                print('\nOBRAS OBTENIDAS:')
+                for obra in obras_seleccionadas[contador-10:contador]:
+                    print(f'{obra.idx} - Titulo: {obra.title}')
                 print(f'Se han logrado guardar {len(obras_seleccionadas)} obras')
                 ans = input('¿Desea obtener otras 10 obras? Si (s)/No (n): ').lower()
                 while ans not in ['s', 'n']:
@@ -155,6 +160,10 @@ class Museo():
 
             self.mostrar_detalles(obras_seleccionadas)
 
+    # BUSQUEDA POR DEPARTAMENTO ##
+
+
+    # BUSQUEDA POR NACIONALIDAD ##
 
     def buscar_por_nacionalidad(self):
         print('\nBÚSQUEDA POR NACIONALIDAD DEL ARTISTA')
@@ -214,6 +223,9 @@ class Museo():
             contador += 1
 
             if contador % 10 == 0:
+                print('\nOBRAS OBTENIDAS:')
+                for obra in obras_seleccionadas[contador-10:contador]:
+                    print(f'{obra.idx} - Titulo: {obra.title}')
                 ans = input('¿Desea obtener otras 10 obras? Si (s)/No (n): ').lower()
                 while ans not in ['s', 'n']:
                     ans = input('Debe ingresar s o n: ')
@@ -222,6 +234,10 @@ class Museo():
 
         return obras_seleccionadas
 
+    # BUSQUEDA POR NACIONALIDAD ##
+
+
+    # BUSQUEDA POR NOMBRE DE AUTOR ##
 
     def obtener_obras_por_nombre_autor(self,nombre):
         api_url = f'https://collectionapi.metmuseum.org/public/collection/v1/search?artistOrCulture=true&q={nombre}'
@@ -245,7 +261,10 @@ class Museo():
             contador += 1
 
             if contador % 10 == 0:
-                ans = input('¿Desea obtener otras 10 obras? Si (s)/No (n): ').lower()
+                print('\nOBRAS OBTENIDAS:')
+                for obra in obras_seleccionadas[contador-10:contador]:
+                    print(f'{obra.idx} - Titulo: {obra.title}')
+                ans = input('\n¿Desea obtener otras 10 obras? Si (s)/No (n): ').lower()
                 while ans not in ['s', 'n']:
                     ans = input('Debe ingresar s o n: ')
                 if ans == 'n':
@@ -274,7 +293,11 @@ class Museo():
             
             self.mostrar_detalles(obras_seleccionadas)
 
+    # BUSQUEDA POR NOMBRE DE AUTOR ##
 
+
+
+    # ADICIONALES ##
 
     def mostrar_detalles(self, lista_obras):
         print('\n¿Desea ver los detalles de alguna de las obras?')
@@ -287,34 +310,73 @@ class Museo():
         if ans == 'n':
             return
 
-        print('\nVER DETALLES DE LAS OBRAS')
-        for i,obra in enumerate(lista_obras):
-            print(f'{i+1}. {obra.mostrar_general()}')
+        while True:
+            print('\nVER DETALLES DE LAS OBRAS')
+            for i,obra in enumerate(lista_obras):
+                print(f'{i+1}. {obra.mostrar_general()}')
 
-        ans = input('\nIngrese el número de la opción deseada: ')
-        while not ans.isnumeric() or int(ans) not in range(1,len(lista_obras)+1):
-            print('\nDebe ingresar una opción válida')
-            ans = input('Ingrese el número de la opción deseada: ')
-        
+            print(f'{len(lista_obras)+1}. Volver al menú')
 
-        obra_seleccionada = lista_obras[int(ans)-1]
-        print(obra_seleccionada.mostrar_detalles())
-        
-        if obra_seleccionada.primary_image == "":
-            print('No se ha podido encontrar una imagen de la obra...')
-        else:
-            print('¿Desea ver una imagen de la obra?')
-            ans = input('Si (s)/No (n): ').lower()
-            while ans not in ['s','n']:
-                print('Debe ingresar una opción válida: ')
-                ans = input('Si (s)/No (n): ').lower()
-            if ans == 's':
-                self.mostrar_imagen(obra_seleccionada.primary_image, obra_seleccionada.title)
-
+            ans = input('\nIngrese el número de la opción deseada: ')
+            while not ans.isnumeric() or int(ans) not in range(1,len(lista_obras)+2):
+                print('\nDebe ingresar una opción válida')
+                ans = input('Ingrese el número de la opción deseada: ')
+            
+            if int(ans) == len(lista_obras)+1:
+                break
+            else:
+                obra_seleccionada = lista_obras[int(ans)-1]
+                print(obra_seleccionada.mostrar_detalles())
+                
+                if obra_seleccionada.primary_image == "":
+                    print('No se ha podido encontrar una imagen de la obra...')
+                else:
+                    print('¿Desea ver una imagen de la obra?')
+                    ans = input('Si (s)/No (n): ').lower()
+                    while ans not in ['s','n']:
+                        print('Debe ingresar una opción válida: ')
+                        ans = input('Si (s)/No (n): ').lower()
+                    if ans == 's':
+                        self.mostrar_imagen(obra_seleccionada.primary_image, obra_seleccionada.title)
 
     def mostrar_imagen(self, url, nombre_base):
-        pass
+        """
+        Descarga una imagen desde una URL y la guarda en un archivo.
+        """
+        try:
+            response = requests.get(url, stream=True)
+            response.raise_for_status()
 
+            content_type = response.headers.get('Content-Type')
+            extension = '.png'  # Valor por defecto
+            if content_type:
+                if 'image/png' in content_type:
+                    extension = '.png'
+                elif 'image/jpeg' in content_type:
+                    extension = '.jpg'
+                elif 'image/svg+xml' in content_type:
+                    extension = '.svg'
+
+            nombre_archivo_final = f"images/{nombre_base}{extension}"
+
+            with open(nombre_archivo_final, 'wb') as file:
+                for chunk in response.iter_content(chunk_size=8192):
+                    file.write(chunk)
+
+            print(f'Imagen guardada exitosamente como "{nombre_archivo_final}"')
+
+            img = Image.open(nombre_archivo_final)
+            img.show()
+
+        except Exception as e:
+            print(f"Err: {e}")
+        except IOError as e:
+            print(f"Error al manejar el archivo: {e}")
+
+    # ADICIONALES ##
+
+
+    # MENU ##
     def buscar_obras(self):
         while True:
             print('\nBÚSQUEDA DE OBRAS ')
@@ -344,7 +406,6 @@ Si la obra cuenta con imagen disponible, también podrá visualizarla.
                 self.buscar_por_nacionalidad()
             elif ans == '3':
                 self.buscar_por_autor()
-
 
     def menu(self):
         self.cargar_departamentos()
