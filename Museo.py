@@ -530,7 +530,7 @@ MENÚ PRINCIPAL
                 
             ans = input('Ingrese el número de la opción deseada: ')
 
-            while not ans.isnumeric() or int(ans) not in range(1,4):
+            while not ans.isnumeric() or int(ans) not in range(1,3):
                 print('Debe ingresar una opción válida')
                 ans = input('Ingrese el número de la opción deseada: ')
 
