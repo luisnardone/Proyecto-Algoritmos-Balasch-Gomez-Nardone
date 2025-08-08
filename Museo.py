@@ -268,6 +268,9 @@ class Museo():
         api_url = f'https://collectionapi.metmuseum.org/public/collection/v1/search?artistOrCulture=true&q={nacionalidad}'
 
         respuesta = requests.get(api_url).json()
+        if respuesta['total'] == 0:
+            print('No se han encontrado obras con la nacionalidad seleccionada...')
+            return []
         print(f"Se han obtenido {respuesta['total']} obras")
         print('\nObteniendo las primeras 10...')
 
@@ -318,6 +321,11 @@ class Museo():
         """
         api_url = f'https://collectionapi.metmuseum.org/public/collection/v1/search?artistOrCulture=true&q={nombre}'
         respuesta = requests.get(api_url).json()
+
+        if respuesta['total'] == 0:
+            print('No se han encontrado obras con la nacionalidad seleccionada...')
+            return []
+
         print(f"Se han obtenido {respuesta['total']} obras")
         print('\nObteniendo las primeras 10...')
 
